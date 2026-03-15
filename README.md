@@ -40,6 +40,7 @@ Trained on 280 patients across 4 countries (Portugal, Greece, Jordan, Turkey). P
 
 > Research demo — not a medical device — not validated for clinical use
 
+Important: Noise cancellation must be off for recording with OpenSteth — on the DJI hardware switch, in the DJI Mimo app, and in your phone's microphone settings.
 ---
 
 ## Run Locally
