@@ -30,7 +30,7 @@ Trained on 280 patients across 4 countries (Portugal, Greece, Jordan, Turkey). P
 | Heart Failure vs Healthy | 0.858 | [0.754–0.945] | 19 | 61 | 80 |
 | Pneumonia vs Healthy | 0.806 | [0.625–0.949] | 11 | 61 | 72 |
 
-> **Key insight:** Google's HeAR model was pretrained on a custom corpus of 313M two-second clips extracted from public YouTube videos using a health acoustic event detector (~174k hours) — it has never seen a labeled lung sound and has no knowledge of COPD or any other specific condition. Its ability to differentiate respiratory pathologies is entirely emergent. A linear probe on top of these frozen embeddings already shows high discriminative accuracy.
+> **Key insight:** Google's HeAR model was pretrained on a custom corpus of 313M two-second clips extracted from public YouTube videos using a health acoustic event detector (~174k hours) — it has never seen a dedicated lung sound dataset. Its ability to differentiate respiratory pathologies is emergent. A linear probe on top of these frozen embeddings already shows high discriminative accuracy.
 
 ---
 
