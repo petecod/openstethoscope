@@ -1,0 +1,5 @@
+__pycache__
+*.pyc
+.git
+train_classifiers.py
+hear_model

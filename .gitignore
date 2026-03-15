@@ -1,0 +1,29 @@
+__pycache__/
+*.pyc
+*.pyo
+.env
+*.log
+.DS_Store
+*.tmp
+archive/
+*.npz
+*.wav
+*.mp3
+*.ogg
+node_modules/
+.venv/
+venv/
+
+# HeAR model weights — do not redistribute (download via download_hear.py)
+hear_model/
+hear_path.txt
+
+
+# Root-level dev scripts (not part of the public release)
+/index.html
+/server.py
+/retrain_classifiers.py
+/train_classifiers.py
+
+# iOS app — local only, not for public distribution
+ios/

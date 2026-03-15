@@ -1,0 +1,177 @@
+[
+  {
+    "task": "copd_vs_healthy",
+    "pos_label": "copd",
+    "neg_labels": [
+      "healthy",
+      "normal"
+    ],
+    "n_positive": 117,
+    "n_negative": 61,
+    "n_total": 178,
+    "oof_auroc": 0.9392,
+    "ci_95": [
+      0.9005,
+      0.9698
+    ],
+    "fold_auroc_mean": 0.9447,
+    "fold_auroc_std": 0.0332,
+    "n_folds": 5,
+    "dataset_breakdown": {
+      "ICBHI": {
+        "n_pos": 64,
+        "n_neg": 26,
+        "n_total": 90
+      },
+      "FR": {
+        "n_pos": 11,
+        "n_neg": 35,
+        "n_total": 46
+      },
+      "RDTR": {
+        "n_pos": 42,
+        "n_neg": 0,
+        "n_total": 42
+      }
+    }
+  },
+  {
+    "task": "copd_vs_all",
+    "pos_label": "copd",
+    "neg_labels": [
+      "urti",
+      "healthy",
+      "asthma",
+      "lrti",
+      "bronchiectasis",
+      "pneumonia",
+      "bronchiolitis",
+      "normal",
+      "lung_fibrosis",
+      "heart_failure",
+      "bronchitis",
+      "pleural_effusion"
+    ],
+    "n_positive": 117,
+    "n_negative": 163,
+    "n_total": 280,
+    "oof_auroc": 0.8904,
+    "ci_95": [
+      0.8476,
+      0.9296
+    ],
+    "fold_auroc_mean": 0.892,
+    "fold_auroc_std": 0.0114,
+    "n_folds": 5,
+    "dataset_breakdown": {
+      "ICBHI": {
+        "n_pos": 64,
+        "n_neg": 62,
+        "n_total": 126
+      },
+      "FR": {
+        "n_pos": 11,
+        "n_neg": 101,
+        "n_total": 112
+      },
+      "RDTR": {
+        "n_pos": 42,
+        "n_neg": 0,
+        "n_total": 42
+      }
+    }
+  },
+  {
+    "task": "pneumonia_vs_healthy",
+    "pos_label": "pneumonia",
+    "neg_labels": [
+      "healthy",
+      "normal"
+    ],
+    "n_positive": 11,
+    "n_negative": 61,
+    "n_total": 72,
+    "oof_auroc": 0.8063,
+    "ci_95": [
+      0.6249,
+      0.9494
+    ],
+    "fold_auroc_mean": 0.8387,
+    "fold_auroc_std": 0.1776,
+    "n_folds": 5,
+    "dataset_breakdown": {
+      "ICBHI": {
+        "n_pos": 6,
+        "n_neg": 26,
+        "n_total": 32
+      },
+      "FR": {
+        "n_pos": 5,
+        "n_neg": 35,
+        "n_total": 40
+      }
+    }
+  },
+  {
+    "task": "asthma_vs_healthy",
+    "pos_label": "asthma",
+    "neg_labels": [
+      "healthy",
+      "normal"
+    ],
+    "n_positive": 34,
+    "n_negative": 61,
+    "n_total": 95,
+    "oof_auroc": 0.877,
+    "ci_95": [
+      0.7976,
+      0.9441
+    ],
+    "fold_auroc_mean": 0.8698,
+    "fold_auroc_std": 0.0356,
+    "n_folds": 5,
+    "dataset_breakdown": {
+      "ICBHI": {
+        "n_pos": 1,
+        "n_neg": 26,
+        "n_total": 27
+      },
+      "FR": {
+        "n_pos": 33,
+        "n_neg": 35,
+        "n_total": 68
+      }
+    }
+  },
+  {
+    "task": "heart_failure_vs_healthy",
+    "pos_label": "heart_failure",
+    "neg_labels": [
+      "healthy",
+      "normal"
+    ],
+    "n_positive": 19,
+    "n_negative": 61,
+    "n_total": 80,
+    "oof_auroc": 0.8576,
+    "ci_95": [
+      0.7542,
+      0.9449
+    ],
+    "fold_auroc_mean": 0.8679,
+    "fold_auroc_std": 0.1225,
+    "n_folds": 5,
+    "dataset_breakdown": {
+      "ICBHI": {
+        "n_pos": 0,
+        "n_neg": 26,
+        "n_total": 26
+      },
+      "FR": {
+        "n_pos": 19,
+        "n_neg": 35,
+        "n_total": 54
+      }
+    }
+  }
+]

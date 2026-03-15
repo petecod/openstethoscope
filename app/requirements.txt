@@ -1,0 +1,7 @@
+flask
+scipy
+scikit-learn
+numpy
+soundfile
+huggingface_hub
+tensorflow>=2.15

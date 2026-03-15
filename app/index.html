@@ -1,0 +1,1069 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>OpenStethoscope</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --navy:   #1a2540;
+      --blue:   #2e4ea3;
+      --muted:  #5a6780;
+      --border: #d1d7e0;
+      --bg:     #f7f8fa;
+      --white:  #ffffff;
+      --red:    #c0392b;
+      --green:  #1a6e38;
+      --orange: #8a4a00;
+      --radius: 10px;
+    }
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--navy);
+      font-size: 15px;
+      min-height: 100vh;
+    }
+
+    /* ── Disclaimer modal ── */
+    #disclaimer-overlay {
+      position: fixed; inset: 0; z-index: 9999;
+      background: rgba(0,0,0,0.65);
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding: 16px;
+      padding-top: max(16px, env(safe-area-inset-top));
+      padding-bottom: max(16px, env(safe-area-inset-bottom));
+    }
+    #disclaimer-box {
+      background: #fff; border-radius: 10px; max-width: 540px; width: 100%;
+      padding: 28px 28px 22px; box-shadow: 0 8px 32px rgba(0,0,0,0.22);
+      margin: auto;
+    }
+    #disclaimer-box h2 { font-size: 17px; font-weight: 700; margin: 0 0 4px; color: #b45309; }
+    #disclaimer-box .disc-sub { font-size: 12px; color: var(--muted); margin-bottom: 16px; }
+    #disclaimer-box ul { margin: 0 0 18px; padding-left: 18px; font-size: 13.5px; line-height: 1.7; }
+    #disclaimer-box ul li { margin-bottom: 4px; }
+    #disclaimer-box .disc-footer {
+      font-size: 11.5px; color: var(--muted); border-top: 1px solid var(--border);
+      padding-top: 12px; margin-bottom: 14px; line-height: 1.6;
+    }
+    #btn-accept {
+      width: 100%; padding: 11px; background: #1a56db; color: #fff;
+      border: none; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer;
+    }
+    #btn-accept:hover { background: #1447c0; }
+
+    /* ── Top warning banner ── */
+    #top-banner {
+      background: #fff8e6; border-bottom: 1.5px solid #f0c040;
+      padding: 8px 16px; text-align: center;
+      font-size: 12px; font-weight: 500; color: #7a4a00;
+    }
+
+    /* ── Header ── */
+    header {
+      background: var(--navy); color: #fff;
+      padding: 12px 20px; display: flex; align-items: center; gap: 12px;
+    }
+    .logo { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; }
+    .logo span { color: #8ab4f8; }
+
+    /* ── Main ── */
+    main { max-width: 520px; margin: 0 auto; padding: 16px 16px 60px; }
+
+    /* ── Mode Selector ── */
+    .mode-selector {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 10px; margin-bottom: 20px;
+    }
+    .mode-card {
+      background: var(--white); border: 2px solid var(--border);
+      border-radius: var(--radius); padding: 14px 12px;
+      cursor: pointer; text-align: center;
+      transition: border-color 0.15s, background 0.15s;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+    .mode-card:hover { border-color: #b0bccc; background: #fafbfc; }
+    .mode-card.active { border-color: var(--navy); background: var(--navy); color: #fff; }
+    .mode-card.active .mode-sub { color: #a0b4cc; }
+    .mode-icon { font-size: 22px; margin-bottom: 6px; }
+    .mode-title { font-size: 14px; font-weight: 700; margin-bottom: 3px; }
+    .mode-sub { font-size: 11px; color: var(--muted); line-height: 1.4; }
+
+    /* ── Section label ── */
+    .section-label {
+      font-size: 11px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.7px; color: var(--muted); margin-bottom: 8px; margin-top: 14px;
+    }
+    .section-label:first-child { margin-top: 0; }
+
+    /* ── Device card ── */
+    .device-card {
+      background: var(--white); border: 1.5px solid var(--border);
+      border-radius: var(--radius); padding: 14px 16px; margin-bottom: 8px;
+    }
+    .device-card label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 6px; }
+    .device-card select {
+      width: 100%; padding: 8px 10px;
+      font-family: 'Inter', sans-serif; font-size: 14px;
+      border: 1.5px solid var(--border); border-radius: 6px;
+      background: var(--bg); color: var(--navy);
+    }
+
+    /* ── Waveform ── */
+    #waveform {
+      width: 100%; height: 72px; display: block;
+      background: var(--white); border: 1.5px solid var(--border);
+      border-radius: var(--radius); margin-bottom: 10px;
+    }
+
+    /* ── Action row ── */
+    .action-row { display: flex; gap: 10px; margin-bottom: 16px; align-items: stretch; }
+
+    #btn-monitor {
+      flex: 1; padding: 14px 12px; border-radius: var(--radius);
+      border: 1.5px solid var(--navy); background: var(--white); color: var(--navy);
+      font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 700;
+      cursor: pointer; transition: all 0.15s; -webkit-tap-highlight-color: transparent;
+    }
+    #btn-monitor.active { background: var(--navy); color: #fff; border-color: var(--navy); }
+    #btn-monitor:hover:not(.active) { background: #f2f4f7; }
+
+    .record-wrap { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+    #btn-record {
+      width: 80px; height: 80px; border-radius: 50%;
+      border: 3px solid var(--navy); background: var(--white);
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: all 0.15s; box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      -webkit-tap-highlight-color: transparent; flex-shrink: 0;
+    }
+    #btn-record:hover { background: #f2f4f7; }
+    #btn-record.recording { border-color: var(--red); background: #fdeaea; }
+    .rec-icon { width: 28px; height: 28px; border-radius: 50%; background: var(--red); transition: border-radius 0.15s; }
+    #btn-record.recording .rec-icon { border-radius: 4px; }
+    .rec-label { font-size: 11px; font-weight: 600; color: var(--muted); text-align: center; }
+
+    #timer { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--navy); text-align: center; }
+    #status-msg { font-size: 13px; color: var(--muted); text-align: center; margin-bottom: 4px; }
+
+    /* ── Position selector ── */
+    .position-selector {
+      background: var(--white); border: 1.5px solid var(--border);
+      border-radius: var(--radius); overflow: hidden; margin-bottom: 16px;
+    }
+    .pos-trigger {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 16px; cursor: pointer; user-select: none;
+      font-size: 14px; font-weight: 600; -webkit-tap-highlight-color: transparent;
+    }
+    .pos-trigger .label { color: var(--muted); font-size: 12px; font-weight: 500; margin-right: 6px; }
+    .pos-trigger .selected-pos { color: var(--navy); }
+    .pos-trigger .chevron { font-size: 12px; color: var(--muted); transition: transform 0.2s; }
+    .pos-trigger.open .chevron { transform: rotate(180deg); }
+    .pos-grid {
+      display: none; grid-template-columns: 1fr 1fr 1fr;
+      gap: 1px; background: var(--border); border-top: 1.5px solid var(--border);
+    }
+    .pos-grid.open { display: grid; }
+    .pos-btn {
+      background: var(--white); border: none; padding: 12px 8px;
+      font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 500;
+      color: var(--navy); cursor: pointer; text-align: center; line-height: 1.4;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .pos-btn:hover { background: #f2f4f7; }
+    .pos-btn.selected { background: #e8edf8; color: var(--blue); font-weight: 600; }
+    .pos-btn small { display: block; font-size: 10px; color: var(--muted); font-weight: 400; }
+
+    /* ── Recordings list ── */
+    .recordings-list { margin-bottom: 16px; }
+    .recording-item {
+      display: flex; align-items: center; gap: 10px;
+      background: var(--white); border: 1.5px solid var(--border);
+      border-radius: var(--radius); padding: 12px 14px; margin-bottom: 8px;
+    }
+    .rec-info { flex: 1; min-width: 0; }
+    .rec-pos { font-size: 13px; font-weight: 600; color: var(--navy); }
+    .rec-dur { font-size: 12px; color: var(--muted); }
+    .rec-actions { display: flex; gap: 6px; flex-shrink: 0; }
+    .btn-sm {
+      padding: 6px 12px; border-radius: 6px;
+      font-size: 12px; font-weight: 600; font-family: 'Inter', sans-serif;
+      cursor: pointer; border: 1.5px solid var(--border);
+      background: var(--white); color: var(--navy);
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-sm:hover { background: var(--bg); }
+    .btn-sm.danger { border-color: #e0b0b0; color: var(--red); }
+    .btn-sm.danger:hover { background: #fdf0f0; }
+    .btn-sm.play.playing { border-color: #a0b8e8; color: var(--blue); background: #f0f4fb; }
+    .btn-sm.download { border-color: #b0c8b0; color: var(--green); }
+    .btn-sm.download:hover { background: #f0f8f0; }
+
+    /* ── Add recording button ── */
+    .btn-add-rec {
+      width: 100%; padding: 11px; border: 1.5px dashed var(--border);
+      border-radius: var(--radius); background: none; font-family: 'Inter', sans-serif;
+      font-size: 13px; font-weight: 600; color: var(--muted);
+      cursor: pointer; margin-bottom: 16px; -webkit-tap-highlight-color: transparent;
+    }
+    .btn-add-rec:hover { background: var(--white); border-color: #b0bccc; color: var(--navy); }
+
+    /* ── Run HEAR-COPD button ── */
+    #btn-analyze {
+      width: 100%; padding: 15px; border-radius: var(--radius);
+      border: none; background: var(--navy); color: #fff;
+      font-family: 'Inter', sans-serif; font-size: 16px; font-weight: 700;
+      cursor: pointer; transition: background 0.15s;
+      -webkit-tap-highlight-color: transparent; margin-bottom: 20px;
+    }
+    #btn-analyze:hover:not(:disabled) { background: #253354; }
+    #btn-analyze:disabled { opacity: 0.5; cursor: default; }
+
+    /* ── Results ── */
+    .card {
+      background: var(--white); border: 1.5px solid var(--border);
+      border-radius: var(--radius); padding: 18px; margin-bottom: 14px;
+    }
+    .card-title {
+      font-size: 12px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.6px; color: var(--muted); margin-bottom: 14px;
+    }
+    #btn-back {
+      display: flex; align-items: center; gap: 6px;
+      background: none; border: none; cursor: pointer;
+      color: var(--blue); font-size: 14px; font-weight: 500;
+      font-family: 'Inter', sans-serif; padding: 0;
+      margin-bottom: 16px; -webkit-tap-highlight-color: transparent;
+    }
+    #btn-back:hover { opacity: 0.75; }
+
+    .score-primary { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .score-name { font-size: 15px; font-weight: 600; }
+    .score-num { font-size: 32px; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .score-tag { font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 20px; }
+    .tag-low  { background: #e8f5ec; color: var(--green); }
+    .tag-mod  { background: #fff0e0; color: var(--orange); }
+    .tag-high { background: #fdeaea; color: var(--red); }
+    .bar-track { height: 10px; background: var(--border); border-radius: 5px; overflow: hidden; margin-bottom: 6px; }
+    .bar-fill { height: 100%; border-radius: 5px; transition: width 0.5s ease; }
+    .bar-low  { background: #2a8a4a; }
+    .bar-mod  { background: #c07010; }
+    .bar-high { background: #b02020; }
+    .score-meta { font-size: 12px; color: var(--muted); }
+
+    .exp-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+    .exp-row:last-child { border-bottom: none; }
+    .exp-name { flex: 1; font-size: 13px; font-weight: 600; }
+    .exp-note { font-size: 11px; color: var(--muted); font-weight: 400; }
+    .exp-bar { width: 100px; flex-shrink: 0; }
+    .exp-val { width: 42px; font-size: 14px; font-weight: 700; text-align: right; flex-shrink: 0; }
+
+    #res-waveform { width: 100%; height: 60px; display: block; background: var(--bg); border-radius: 6px; }
+
+    /* ── Collapsible ── */
+    .collapse-trigger {
+      display: flex; align-items: center; justify-content: space-between;
+      cursor: pointer; user-select: none; padding: 4px 0; -webkit-tap-highlight-color: transparent;
+    }
+    .collapse-trigger .chev { font-size: 12px; color: var(--muted); transition: transform 0.2s; }
+    .collapse-trigger.open .chev { transform: rotate(180deg); }
+    .collapse-body { display: none; margin-top: 12px; }
+    .collapse-body.open { display: block; }
+
+    .sci-dl dt { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); margin-top: 10px; }
+    .sci-dl dd { font-size: 13px; color: var(--navy); margin-left: 0; }
+
+    /* ── Progress bar ── */
+    #analysis-progress { display: none; margin-bottom: 14px; }
+    .progress-label {
+      font-size: 12px; font-weight: 500; color: var(--muted);
+      display: flex; justify-content: space-between; align-items: baseline;
+      margin-bottom: 6px; gap: 8px;
+    }
+    #progress-text { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    #progress-pct  { flex-shrink: 0; font-weight: 700; color: var(--navy); }
+    .progress-track { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+    .progress-fill { height: 100%; border-radius: 3px; background: var(--blue); transition: width 0.4s ease; width: 0%; }
+
+    /* ── Error ── */
+    .error-msg {
+      background: #fdeaea; border: 1px solid #e8b0b0;
+      border-radius: 6px; padding: 10px 14px;
+      font-size: 13px; color: var(--red); margin-bottom: 12px; display: none;
+    }
+
+    /* ── About ── */
+    .about-body { font-size: 13px; color: var(--muted); line-height: 1.65; }
+    .about-body a { color: var(--blue); }
+    .about-body p { margin-bottom: 8px; }
+    .about-body strong { color: var(--navy); }
+
+    /* ── Hidden ── */
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+<!-- ── Disclaimer modal ── -->
+<div id="disclaimer-overlay">
+  <div id="disclaimer-box">
+    <h2>⚠️ Research Demo — Not for Clinical Use</h2>
+    <div class="disc-sub">Please read before continuing</div>
+    <ul>
+      <li><strong>Not a medical device.</strong> This tool has not been approved or cleared by any regulatory authority (FDA, CE, or equivalent). It must not be used for clinical decision-making.</li>
+      <li><strong>Not a diagnosis.</strong> Scores are research outputs only and do not constitute a medical diagnosis or clinical recommendation.</li>
+      <li><strong>Proof of concept.</strong> This is an early-stage research prototype. Results have not been prospectively validated and may not generalise to your device, population, or clinical setting.</li>
+      <li><strong>Zero data retention.</strong> Audio is sent to the inference server (Azure, Sweden Central) solely to compute the AI score. It is processed immediately and permanently deleted — <strong>nothing is stored, logged, or retained after analysis.</strong> No database, no analytics, no third-party sharing.</li>
+      <li><strong>No cookies or tracking.</strong> This site does not use cookies, analytics, or any form of user tracking.</li>
+    </ul>
+    <div class="disc-footer">
+      By clicking "I accept" you confirm you have read this notice, understand that audio will be sent to the inference server for processing and immediately deleted, and agree to use this tool for research and educational purposes only.
+    </div>
+    <button id="btn-accept" onclick="acceptDisclaimer()">I accept — continue to demo</button>
+  </div>
+</div>
+
+<div id="top-banner">⚠️ Research demo — not a medical device · not validated for clinical use · do not use for medical decisions</div>
+
+<header>
+  <div class="logo">Open<span>Stethoscope</span></div>
+</header>
+
+<main>
+
+  <!-- ═══════ MODE SELECTOR ═══════ -->
+  <div class="section-label" style="margin-top:0">Mode</div>
+  <div class="mode-selector">
+    <div class="mode-card" id="mode-listen" onclick="setMode('listen')">
+      <div class="mode-icon">🎧</div>
+      <div class="mode-title">Listen &amp; Record</div>
+      <div class="mode-sub">Monitor and capture lung sounds only</div>
+    </div>
+    <div class="mode-card" id="mode-hearcopd" onclick="setMode('hearcopd')">
+      <div class="mode-icon">🧠</div>
+      <div class="mode-title">HEAR-COPD</div>
+      <div class="mode-sub">AI analysis for COPD risk scoring</div>
+    </div>
+  </div>
+
+  <!-- ═══════ DEVICE SELECTORS ═══════ -->
+  <div class="section-label">Input Device</div>
+  <div class="device-card">
+    <label for="input-select">Microphone</label>
+    <select id="input-select" onchange="onInputChange()">
+      <option value="">— Tap Monitor to load devices —</option>
+    </select>
+  </div>
+
+  <div class="section-label">Output Device</div>
+  <div class="device-card">
+    <label for="output-select">Speaker / Headphones</label>
+    <select id="output-select" onchange="onOutputChange()">
+      <option value="">Default output</option>
+    </select>
+  </div>
+
+  <!-- ═══════ MAIN RECORDING AREA ═══════ -->
+  <div id="screen-main">
+
+    <div class="error-msg" id="error-msg"></div>
+
+    <canvas id="waveform" class="hidden"></canvas>
+
+    <div id="timer" style="margin:10px 0 2px; display:none">0:00</div>
+    <div id="status-msg" style="margin-bottom:12px; display:none"></div>
+
+    <div class="action-row">
+      <button id="btn-monitor" onclick="toggleMonitor()">🔊 Monitor</button>
+      <div class="record-wrap">
+        <button id="btn-record" aria-label="Start recording" onclick="toggleRecord()">
+          <div class="rec-icon"></div>
+        </button>
+        <div class="rec-label" id="rec-label">Record</div>
+      </div>
+    </div>
+
+    <p id="mode-hint" style="font-size:12px; color:var(--muted); text-align:center; margin-bottom:16px; line-height:1.6">
+      Monitor: live listen through headphones.<br/>
+      Record: capture lung sounds.<br/>
+      On iOS, connect AirPods <em>before</em> tapping Monitor.
+    </p>
+
+    <!-- Position selector -->
+    <div class="position-selector hidden" id="pos-selector">
+      <div class="pos-trigger" id="pos-trigger" onclick="togglePositions()">
+        <span><span class="label">Position:</span> <span class="selected-pos" id="selected-pos-label">Not specified</span></span>
+        <span class="chevron">▼</span>
+      </div>
+      <div class="pos-grid" id="pos-grid">
+        <button class="pos-btn" onclick="selectPos('AL','Anterior Left')">Anterior<small>Left</small></button>
+        <button class="pos-btn" onclick="selectPos('AR','Anterior Right')">Anterior<small>Right</small></button>
+        <button class="pos-btn" onclick="selectPos('LL','Lateral Left')">Lateral<small>Left</small></button>
+        <button class="pos-btn" onclick="selectPos('LR','Lateral Right')">Lateral<small>Right</small></button>
+        <button class="pos-btn" onclick="selectPos('PL','Posterior Left')">Posterior<small>Left</small></button>
+        <button class="pos-btn" onclick="selectPos('PR','Posterior Right')">Posterior<small>Right</small></button>
+      </div>
+    </div>
+
+    <!-- Recordings list -->
+    <div class="recordings-list" id="recordings-list"></div>
+
+    <!-- Add another recording -->
+    <button class="btn-add-rec hidden" id="btn-add-rec" onclick="resetForNextRecording()">+ Add recording at another position</button>
+
+    <!-- Progress (HEAR-COPD mode only) -->
+    <div id="analysis-progress">
+      <div class="progress-label">
+        <span id="progress-text">Analyzing…</span>
+        <span id="progress-pct">0%</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progress-fill"></div>
+      </div>
+    </div>
+
+    <!-- Run HEAR-COPD (HEAR-COPD mode only) -->
+    <button id="btn-analyze" onclick="analyzeAll()" disabled class="hidden">Run HEAR-COPD →</button>
+
+    <!-- About -->
+    <div style="background:var(--white); border:1.5px solid var(--border); border-radius:var(--radius); padding:14px 16px; margin-top:4px;">
+      <div class="collapse-trigger" onclick="this.classList.toggle('open'); this.nextElementSibling.classList.toggle('open')">
+        <span style="font-size:13px; font-weight:600; color:var(--muted)">About OpenStethoscope</span>
+        <span class="chev">▼</span>
+      </div>
+      <div class="collapse-body about-body">
+        <p><strong>Hardware — OpenSteth 1.0</strong><br/>
+        A DJI Mic Mini inserted into a standard Littmann stethoscope cup. ~$50 + ~$50 = &lt;$100, 30 min to assemble. Works with any recording app — fully independent of the AI software.</p>
+        <p><strong>Software — HEAR-COPD</strong><br/>
+        A first proof-of-concept using Google's <strong>HeAR</strong> acoustic foundation model to classify lung sounds for COPD risk scoring. Validated on 280 patients across 4 countries (AUROC 0.939). The pipeline is open and extensible — any researcher can retrain it for other respiratory conditions.</p>
+        <p><a href="https://github.com/petecod/openstethoscope" target="_blank" rel="noopener">github.com/petecod/openstethoscope</a></p>
+      </div>
+    </div>
+
+  </div><!-- /#screen-main -->
+
+  <!-- ═══════ RESULTS SCREEN ═══════ -->
+  <div id="screen-results" class="hidden">
+
+    <button id="btn-back" onclick="showMainScreen()">← New Recording</button>
+
+    <div class="card">
+      <div class="card-title">Recorded Audio</div>
+      <canvas id="res-waveform"></canvas>
+      <div style="font-size:12px;color:var(--muted);margin-top:6px;" id="dur-info"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">HEAR-COPD Risk Score</div>
+      <div class="score-primary">
+        <div>
+          <div class="score-name">COPD Risk</div>
+          <div style="margin-top:4px;"><span class="score-tag" id="copd-tag">—</span></div>
+        </div>
+        <div class="score-num" id="copd-pct">—</div>
+      </div>
+      <div class="bar-track"><div class="bar-fill" id="copd-bar" style="width:0%"></div></div>
+      <div class="score-meta" id="copd-meta" style="margin-top:6px;"></div>
+
+      <div style="margin-top:14px;">
+        <div class="collapse-trigger" onclick="this.classList.toggle('open'); this.nextElementSibling.classList.toggle('open')">
+          <span style="font-size:13px; font-weight:600; color:var(--blue)">Scientific explanation</span>
+          <span class="chev">▼</span>
+        </div>
+        <div class="collapse-body">
+          <dl class="sci-dl">
+            <dt>Algorithm</dt><dd>HEAR-COPD — HeAR acoustic foundation model (Google, frozen, 512-dim embeddings) + logistic regression probe.</dd>
+            <dt>What this measures</dt><dd>Probability that lung sounds are consistent with COPD vs. healthy controls.</dd>
+            <dt>Training data</dt><dd>ICBHI 2017 (126 patients, Portugal/Greece) · Fraiwan/KAUH (112 patients, Jordan) · RDTR (42 patients, Turkey). 280 patients total, 4 countries. Patient-level stratified cross-validation.</dd>
+            <dt>Performance</dt><dd>COPD vs Healthy: OOF AUROC 0.939 [0.900–0.970] · COPD vs All patients: 0.890 [0.848–0.930]</dd>
+            <dt>Signal preprocessing</dt><dd>5th-order Butterworth low-pass at 2000 Hz applied before embedding, aligning the broadband consumer microphone (DJI Mic Mini, 20–20,000 Hz) with stethoscope-limited training data (~500 Hz hardware cutoff). Preserves all clinically relevant sounds: normal breath (100–500 Hz), wheeze (100–2400 Hz), crackle (200–2000 Hz).</dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="collapse-trigger" onclick="this.classList.toggle('open'); this.nextElementSibling.classList.toggle('open')">
+        <div>
+          <div class="card-title" style="margin-bottom:2px">Additional HEAR-COPD Scores</div>
+          <div style="font-size:12px;color:var(--muted)">Research use only — not validated for clinical decisions</div>
+        </div>
+        <span class="chev">▼</span>
+      </div>
+      <div class="collapse-body">
+        <div class="exp-row">
+          <div style="flex:1"><div class="exp-name">COPD <span class="exp-note">(vs all patients)</span></div></div>
+          <div class="exp-bar"><div class="bar-track"><div class="bar-fill" id="bar-copd-all" style="width:0%"></div></div></div>
+          <div class="exp-val" id="val-copd-all">—</div>
+        </div>
+        <div class="exp-row">
+          <div style="flex:1"><div class="exp-name">Pneumonia</div></div>
+          <div class="exp-bar"><div class="bar-track"><div class="bar-fill" id="bar-pneu" style="width:0%"></div></div></div>
+          <div class="exp-val" id="val-pneu">—</div>
+        </div>
+        <div class="exp-row">
+          <div style="flex:1"><div class="exp-name">Asthma</div></div>
+          <div class="exp-bar"><div class="bar-track"><div class="bar-fill" id="bar-asthma" style="width:0%"></div></div></div>
+          <div class="exp-val" id="val-asthma">—</div>
+        </div>
+        <div class="exp-row">
+          <div style="flex:1"><div class="exp-name">Heart Failure</div></div>
+          <div class="exp-bar"><div class="bar-track"><div class="bar-fill" id="bar-hf" style="width:0%"></div></div></div>
+          <div class="exp-val" id="val-hf">—</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /#screen-results -->
+
+</main>
+
+<script>
+// ── Disclaimer ──────────────────────────────────────────────────────────────
+function acceptDisclaimer() {
+  sessionStorage.setItem('disclaimer_accepted', '1');
+  document.getElementById('disclaimer-overlay').style.display = 'none';
+}
+(function() {
+  if (sessionStorage.getItem('disclaimer_accepted') === '1') {
+    const el = document.getElementById('disclaimer-overlay');
+    if (el) el.style.display = 'none';
+  }
+})();
+
+// ── Mode ──────────────────────────────────────────────────────────────────
+let currentMode = null;  // 'listen' | 'hearcopd'
+
+function setMode(mode) {
+  currentMode = mode;
+  document.getElementById('mode-listen').classList.toggle('active', mode === 'listen');
+  document.getElementById('mode-hearcopd').classList.toggle('active', mode === 'hearcopd');
+
+  const isHearCopd = mode === 'hearcopd';
+  const hasRecs = recordings.length > 0;
+
+  // Hint text
+  document.getElementById('mode-hint').innerHTML = isHearCopd
+    ? 'Monitor: live listen through headphones.<br/>Record: capture for <strong>HEAR-COPD</strong> analysis.<br/>On iOS, connect AirPods <em>before</em> tapping Monitor.'
+    : 'Monitor: live listen through headphones.<br/>Record: capture and download lung sounds.<br/>On iOS, connect AirPods <em>before</em> tapping Monitor.';
+
+  // Analyze button visibility
+  const btn = document.getElementById('btn-analyze');
+  if (isHearCopd && hasRecs) {
+    btn.classList.remove('hidden');
+    btn.disabled = false;
+  } else {
+    btn.classList.add('hidden');
+    btn.disabled = true;
+  }
+
+  // Re-render recordings list (download buttons differ by mode)
+  if (hasRecs) renderRecordingsList();
+}
+
+// ═══ STATE ═══
+let recordings      = [];
+let currentBlob     = null;
+let currentPos      = null;
+let currentPosLabel = 'Not specified';
+let mediaRecorder   = null;
+let audioChunks     = [];
+let timerInterval   = null;
+let startTime       = null;
+let playbackObj     = null;
+let posOpen         = false;
+let isRecording     = false;
+let devicesLoaded   = false;
+
+let monitorStream   = null;
+let monitorAudio    = null;
+let monitorCtx      = null;
+let monitorSource   = null;
+let monitorAnalyser = null;
+let monitorRaf      = null;
+let monitorActive   = false;
+
+// ═══ DEVICE LOADING ═══
+async function loadDevices() {
+  if (devicesLoaded) return;
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    showError('Microphone access requires HTTPS (iOS/Android browser restriction). Options: (1) use https://opensteth.agentic-medicine.com, (2) open http://localhost:8080 directly on the same machine, or (3) set up Tailscale and run: tailscale serve --bg http://localhost:8080');
+    return;
+  }
+  try {
+    const tmp = await navigator.mediaDevices.getUserMedia({ audio: true });
+    tmp.getTracks().forEach(t => t.stop());
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    const inp = document.getElementById('input-select');
+    const out = document.getElementById('output-select');
+    inp.innerHTML = '';
+    out.innerHTML = '<option value="">Default output</option>';
+    devices.filter(d => d.kind === 'audioinput').forEach(d => {
+      const o = new Option(d.label || ('Microphone ' + (inp.options.length + 1)), d.deviceId);
+      if (d.label.toLowerCase().includes('dji') || d.label.toLowerCase().includes('mic mini')) o.selected = true;
+      inp.appendChild(o);
+    });
+    devices.filter(d => d.kind === 'audiooutput').forEach(d => {
+      out.appendChild(new Option(d.label || ('Output ' + out.options.length), d.deviceId));
+    });
+    devicesLoaded = true;
+  } catch(e) {
+    showError('Microphone access denied. Please allow microphone access.');
+  }
+}
+
+// ═══ MONITOR ═══
+async function toggleMonitor() {
+  monitorActive ? stopMonitor() : await startMonitor();
+}
+async function startMonitor() {
+  clearError();
+  await loadDevices();
+  try {
+    const deviceId = document.getElementById('input-select').value;
+    monitorStream = await navigator.mediaDevices.getUserMedia({
+      audio: deviceId ? { deviceId: { exact: deviceId }, echoCancellation: false, noiseSuppression: false }
+                      : { echoCancellation: false, noiseSuppression: false },
+      video: false
+    });
+    monitorAudio = new Audio();
+    monitorAudio.srcObject = monitorStream;
+    monitorAudio.muted = false;
+    const outId = document.getElementById('output-select').value;
+    if (outId && monitorAudio.setSinkId) { try { await monitorAudio.setSinkId(outId); } catch(e) {} }
+    monitorAudio.play();
+    monitorCtx      = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 44100 });
+    monitorSource   = monitorCtx.createMediaStreamSource(monitorStream);
+    monitorAnalyser = monitorCtx.createAnalyser();
+    monitorAnalyser.fftSize = 1024;
+    monitorSource.connect(monitorAnalyser);
+    monitorActive = true;
+    document.getElementById('btn-monitor').textContent = '■ Stop Monitor';
+    document.getElementById('btn-monitor').classList.add('active');
+    showWaveform(); drawWaveform();
+  } catch(e) {
+    if (!navigator.mediaDevices) {
+      showError('Microphone access requires HTTPS. Use https://opensteth.agentic-medicine.com, open localhost:8080 on the same machine, or run: tailscale serve --bg http://localhost:8080');
+    } else {
+      showError('Could not start monitoring: ' + e.message);
+    }
+  }
+}
+function stopMonitor() {
+  monitorActive = false;
+  if (monitorRaf)    cancelAnimationFrame(monitorRaf);
+  if (monitorAudio)  { monitorAudio.pause(); monitorAudio.srcObject = null; monitorAudio = null; }
+  if (monitorSource) monitorSource.disconnect();
+  if (monitorCtx)    monitorCtx.close();
+  if (monitorStream) monitorStream.getTracks().forEach(t => t.stop());
+  monitorStream = monitorCtx = monitorSource = monitorAnalyser = null;
+  document.getElementById('btn-monitor').textContent = '🔊 Monitor';
+  document.getElementById('btn-monitor').classList.remove('active');
+  if (!isRecording) hideWaveform();
+}
+async function onInputChange()  { if (monitorActive) { stopMonitor(); await startMonitor(); } }
+async function onOutputChange() {
+  if (monitorAudio) {
+    const outId = document.getElementById('output-select').value;
+    if (outId && monitorAudio.setSinkId) { try { await monitorAudio.setSinkId(outId); } catch(e) {} }
+  }
+}
+
+// ═══ WAVEFORM ═══
+function showWaveform() { document.getElementById('waveform').classList.remove('hidden'); }
+function hideWaveform() { document.getElementById('waveform').classList.add('hidden'); }
+
+const ENV_SECS = 10, ENV_FPS = 30, ENV_RMS_HZ = 20;
+let envBuf = [], envLastRms = 0, envLastDraw = 0;
+
+function drawWaveform() {
+  const canvas = document.getElementById('waveform');
+  const ctx2   = canvas.getContext('2d');
+  const dpr    = window.devicePixelRatio || 1;
+  canvas.width  = (canvas.offsetWidth || 400) * dpr;
+  canvas.height = 72 * dpr;
+  ctx2.scale(dpr, dpr);
+  const rawBuf = new Float32Array(monitorAnalyser?.fftSize || 1024);
+  const maxPts = Math.ceil(ENV_SECS * ENV_RMS_HZ);
+
+  function frame(ts) {
+    if (!monitorActive && !isRecording) return;
+    monitorRaf = requestAnimationFrame(frame);
+    if (monitorAnalyser && ts - envLastRms > 1000 / ENV_RMS_HZ) {
+      monitorAnalyser.getFloatTimeDomainData(rawBuf);
+      let sum = 0;
+      for (let i = 0; i < rawBuf.length; i++) sum += rawBuf[i] * rawBuf[i];
+      envBuf.push(Math.sqrt(sum / rawBuf.length));
+      if (envBuf.length > maxPts) envBuf.shift();
+      envLastRms = ts;
+    }
+    if (ts - envLastDraw < 1000 / ENV_FPS) return;
+    envLastDraw = ts;
+    const smooth = envBuf.map((v, i) => {
+      let s = 0, n = 0;
+      for (let j = Math.max(0,i-2); j <= Math.min(envBuf.length-1,i+2); j++) { s+=envBuf[j]; n++; }
+      return s/n;
+    });
+    const peak = Math.max(...smooth, 0.001);
+    const norm = smooth.map(v => v/peak);
+    const cW = canvas.offsetWidth || 400, cH = 72;
+    if (canvas.width !== cW*dpr) { canvas.width=cW*dpr; ctx2.scale(dpr,dpr); }
+    ctx2.fillStyle='#fff'; ctx2.fillRect(0,0,cW,cH);
+    if (norm.length < 2) return;
+    const mid=cH/2, amp=cH*0.38, xStep=cW/(maxPts-1), offsetX=(maxPts-norm.length)*xStep;
+    ctx2.strokeStyle='#2e4ea3'; ctx2.lineWidth=1.8; ctx2.lineJoin='round'; ctx2.lineCap='round';
+    ctx2.beginPath();
+    for (let i=0;i<norm.length;i++) { const x=offsetX+i*xStep,y=mid-norm[i]*amp; i===0?ctx2.moveTo(x,y):ctx2.lineTo(x,y); }
+    for (let i=norm.length-1;i>=0;i--) ctx2.lineTo(offsetX+i*xStep, mid+norm[i]*amp);
+    ctx2.closePath();
+    ctx2.fillStyle='rgba(46,78,163,0.10)'; ctx2.fill(); ctx2.stroke();
+    ctx2.beginPath(); ctx2.strokeStyle='rgba(46,78,163,0.15)'; ctx2.lineWidth=0.8;
+    ctx2.moveTo(0,mid); ctx2.lineTo(cW,mid); ctx2.stroke();
+  }
+  envBuf=[]; envLastRms=0; envLastDraw=0;
+  requestAnimationFrame(frame);
+}
+
+// ═══ RECORDING ═══
+async function toggleRecord() { isRecording ? stopRecording() : await startRecording(); }
+
+async function startRecording() {
+  clearError();
+  await loadDevices();
+  try {
+    const deviceId = document.getElementById('input-select').value;
+    const stream = await navigator.mediaDevices.getUserMedia({
+      audio: deviceId ? { deviceId: { exact: deviceId }, echoCancellation: false, noiseSuppression: false }
+                      : { echoCancellation: false, noiseSuppression: false },
+      video: false
+    });
+    audioChunks = [];
+    const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus') ? 'audio/webm;codecs=opus'
+                   : MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : '';
+    mediaRecorder = new MediaRecorder(stream, mimeType ? { mimeType } : {});
+    mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
+    mediaRecorder.onstop = () => { stream.getTracks().forEach(t => t.stop()); onRecordingComplete(); };
+    mediaRecorder.start(250);
+    isRecording = true; startTime = Date.now();
+    timerInterval = setInterval(updateTimer, 200);
+    document.getElementById('btn-record').classList.add('recording');
+    document.getElementById('btn-record').setAttribute('aria-label', 'Stop recording');
+    document.getElementById('rec-label').textContent = 'Stop';
+    document.getElementById('timer').style.display = 'block';
+    document.getElementById('timer').textContent = '0:00';
+    document.getElementById('status-msg').style.display = 'block';
+    document.getElementById('status-msg').textContent = 'Recording… tap ● to stop';
+    if (!monitorActive) {
+      showWaveform();
+      const tmpCtx = new (window.AudioContext||window.webkitAudioContext)({ sampleRate:44100 });
+      const tmpSrc = tmpCtx.createMediaStreamSource(stream);
+      monitorAnalyser = tmpCtx.createAnalyser();
+      monitorAnalyser.fftSize = 1024;
+      tmpSrc.connect(monitorAnalyser);
+      drawWaveform();
+      mediaRecorder.addEventListener('stop', () => { tmpCtx.close(); monitorAnalyser=null; }, { once:true });
+    }
+  } catch(e) { showError('Microphone access denied: ' + e.message); }
+}
+
+function stopRecording() {
+  if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+  clearInterval(timerInterval);
+  isRecording = false;
+  document.getElementById('btn-record').classList.remove('recording');
+  document.getElementById('btn-record').setAttribute('aria-label', 'Start recording');
+  document.getElementById('rec-label').textContent = 'Record';
+}
+function updateTimer() {
+  const s = Math.floor((Date.now()-startTime)/1000);
+  document.getElementById('timer').textContent = Math.floor(s/60)+':'+String(s%60).padStart(2,'0');
+}
+function onRecordingComplete() {
+  const mime = (audioChunks[0]?.type) || 'audio/webm';
+  const blob = new Blob(audioChunks, { type: mime });
+  const url  = URL.createObjectURL(blob);
+  const dur  = (Date.now()-startTime)/1000;
+  recordings.push({ blob, url, position: currentPos, posLabel: currentPosLabel, duration: dur });
+  document.getElementById('timer').style.display    = 'none';
+  document.getElementById('status-msg').style.display = 'none';
+  if (!monitorActive) hideWaveform();
+  renderRecordingsList();
+  document.getElementById('pos-selector').classList.remove('hidden');
+  document.getElementById('btn-add-rec').classList.remove('hidden');
+  // Only show analyze button in HEAR-COPD mode
+  if (currentMode === 'hearcopd') {
+    document.getElementById('btn-analyze').classList.remove('hidden');
+    document.getElementById('btn-analyze').disabled = false;
+  }
+}
+
+// ═══ RECORDINGS LIST ═══
+function renderRecordingsList() {
+  const list = document.getElementById('recordings-list');
+  list.innerHTML = '';
+  recordings.forEach((rec, idx) => {
+    const showDownload = (currentMode === 'listen' || currentMode === null);
+    const item = document.createElement('div');
+    item.className = 'recording-item';
+    item.innerHTML = `
+      <div class="rec-info">
+        <div class="rec-pos">${rec.posLabel}</div>
+        <div class="rec-dur">${rec.duration.toFixed(0)}s</div>
+      </div>
+      <div class="rec-actions">
+        <button class="btn-sm play" id="play-btn-${idx}" onclick="togglePlayback(${idx})">▶ Play</button>
+        ${showDownload ? `<button class="btn-sm download" onclick="downloadRecording(${idx})">⬇ Save</button>` : ''}
+        <button class="btn-sm danger" onclick="deleteRecording(${idx})">✕</button>
+      </div>`;
+    list.appendChild(item);
+  });
+}
+
+function downloadRecording(idx) {
+  const rec = recordings[idx];
+  if (!rec) return;
+  const a = document.createElement('a');
+  a.href = rec.url;
+  const ext = rec.blob.type.includes('webm') ? 'webm' : 'wav';
+  a.download = `lung_sound_${rec.position || 'pos' + (idx+1)}_${new Date().toISOString().slice(0,19).replace(/:/g,'-')}.${ext}`;
+  a.click();
+}
+
+function togglePlayback(idx) {
+  const rec = recordings[idx];
+  if (!rec) return;
+  if (playbackObj && !playbackObj.paused) {
+    playbackObj.pause(); playbackObj = null;
+    document.querySelectorAll('.btn-sm.play').forEach(b => b.classList.remove('playing'));
+    return;
+  }
+  playbackObj = new Audio(rec.url);
+  playbackObj.play();
+  playbackObj.onended = () => document.getElementById('play-btn-'+idx)?.classList.remove('playing');
+  document.getElementById('play-btn-'+idx)?.classList.add('playing');
+}
+
+function deleteRecording(idx) {
+  if (playbackObj) { playbackObj.pause(); playbackObj = null; }
+  URL.revokeObjectURL(recordings[idx].url);
+  recordings.splice(idx, 1);
+  renderRecordingsList();
+  if (recordings.length === 0) {
+    document.getElementById('btn-analyze').classList.add('hidden');
+    document.getElementById('btn-analyze').disabled = true;
+    document.getElementById('btn-add-rec').classList.add('hidden');
+    document.getElementById('pos-selector').classList.add('hidden');
+  }
+}
+
+function resetForNextRecording() {
+  document.getElementById('status-msg').style.display = 'block';
+  document.getElementById('status-msg').textContent = 'Select a new position, then tap ● to record';
+}
+
+// ═══ POSITIONS ═══
+function togglePositions() {
+  posOpen = !posOpen;
+  document.getElementById('pos-trigger').classList.toggle('open', posOpen);
+  document.getElementById('pos-grid').classList.toggle('open', posOpen);
+}
+function selectPos(code, label) {
+  currentPos = code; currentPosLabel = label;
+  document.getElementById('selected-pos-label').textContent = label;
+  document.querySelectorAll('.pos-btn').forEach(b => b.classList.remove('selected'));
+  event.target.closest('.pos-btn').classList.add('selected');
+  posOpen = false;
+  document.getElementById('pos-trigger').classList.remove('open');
+  document.getElementById('pos-grid').classList.remove('open');
+  if (recordings.length > 0) {
+    recordings[recordings.length-1].posLabel = label;
+    recordings[recordings.length-1].position = code;
+    renderRecordingsList();
+  }
+}
+
+// ═══ HEAR-COPD ANALYSIS ═══
+const PROGRESS_MSGS = [
+  'Resampling audio to 16 kHz…','Slicing into 2-second windows…',
+  'Initialising HeAR neural network…','Running transformer encoder…',
+  'Extracting 512-dimensional embeddings…','Listening for inspiratory sounds…',
+  'Detecting expiratory phase…','Scanning for crackles…','Scanning for wheezes…',
+  'Analysing breath sound patterns…','Comparing against 280-patient training cohort…',
+  'Evaluating HEAR-COPD acoustic signature…','Cross-referencing ICBHI dataset patterns…',
+  'Checking airflow turbulence features…','Aggregating window-level predictions…',
+  'Running HEAR-COPD classifier…','Computing COPD probability score…',
+  'Checking for adventitious sounds…','Reviewing frequency spectrum…',
+  'Analysing respiratory cycle structure…','Pooling embeddings across recording…',
+  'Calibrating confidence interval…','Finalising HEAR-COPD analysis…','Almost there…',
+];
+
+let _progTarget=0, _progCurrent=0, _progRaf=null, _msgInterval=null, _msgIdx=0;
+
+function startProgress() {
+  _progTarget=0; _progCurrent=0; _msgIdx=0;
+  document.getElementById('progress-fill').style.width='0%';
+  document.getElementById('progress-pct').textContent='0%';
+  document.getElementById('progress-text').textContent=PROGRESS_MSGS[0];
+  _msgInterval = setInterval(() => {
+    if (_msgIdx < PROGRESS_MSGS.length-1) {
+      _msgIdx++;
+      document.getElementById('progress-text').textContent=PROGRESS_MSGS[_msgIdx];
+    }
+  }, 3000);
+  function tick() {
+    _progRaf = requestAnimationFrame(tick);
+    if (_progCurrent < _progTarget) {
+      _progCurrent = Math.min(_progCurrent + Math.max(0.08, (_progTarget-_progCurrent)*0.03), _progTarget);
+      const d = Math.round(_progCurrent);
+      document.getElementById('progress-fill').style.width=d+'%';
+      document.getElementById('progress-pct').textContent=d+'%';
+    }
+  }
+  tick();
+}
+function advanceProgress(done, total) { _progTarget = Math.round((done/total)*90); }
+function finishProgress() {
+  _progTarget=100; _progCurrent=100;
+  document.getElementById('progress-fill').style.width='100%';
+  document.getElementById('progress-pct').textContent='100%';
+  document.getElementById('progress-text').textContent='Done!';
+  if (_msgInterval) clearInterval(_msgInterval);
+  if (_progRaf) cancelAnimationFrame(_progRaf);
+}
+function stopProgress() {
+  if (_msgInterval) clearInterval(_msgInterval);
+  if (_progRaf) cancelAnimationFrame(_progRaf);
+  _progRaf=_msgInterval=null;
+}
+
+async function analyzeAll() {
+  if (recordings.length===0 || currentMode!=='hearcopd') return;
+  clearError();
+  const btn=document.getElementById('btn-analyze'), prog=document.getElementById('analysis-progress');
+  btn.disabled=true; btn.classList.add('hidden');
+  prog.style.display='block'; startProgress();
+  try {
+    const results=[];
+    for (let i=0; i<recordings.length; i++) {
+      advanceProgress(i, recordings.length);
+      const resp = await fetch('/api/analyze', {
+        method:'POST', headers:{'Content-Type': recordings[i].blob.type||'audio/webm'}, body: recordings[i].blob
+      });
+      const data = await resp.json();
+      if (!data.ok) throw new Error(data.error||'Server error');
+      results.push(data); advanceProgress(i+1, recordings.length);
+    }
+    finishProgress();
+    await new Promise(r=>setTimeout(r,400));
+    prog.style.display='none'; stopProgress();
+    showResults(mergeResults(results), recordings[0].blob);
+  } catch(e) {
+    stopProgress(); prog.style.display='none';
+    btn.classList.remove('hidden'); btn.disabled=false;
+    showError('HEAR-COPD analysis failed: '+e.message);
+  }
+}
+
+function mergeResults(results) {
+  if (results.length===1) return results[0];
+  const m=JSON.parse(JSON.stringify(results[0]));
+  Object.keys(m.scores).forEach(k => {
+    m.scores[k].prob_pct=results.reduce((s,r)=>s+(r.scores[k]?.prob_pct||0),0)/results.length;
+  });
+  m.duration=results.reduce((s,r)=>s+(r.duration||0),0);
+  m.windows=results.reduce((s,r)=>s+(r.windows||0),0);
+  m._nRecordings=results.length;
+  return m;
+}
+
+// ═══ RESULTS ═══
+function riskInfo(pct) {
+  if (pct<40) return {text:'Low',cls:'tag-low',bar:'bar-low'};
+  if (pct<65) return {text:'Moderate',cls:'tag-mod',bar:'bar-mod'};
+  return {text:'High',cls:'tag-high',bar:'bar-high'};
+}
+function setBar(barId, valId, pct) {
+  const r=riskInfo(pct), bar=document.getElementById(barId);
+  if (bar) { bar.style.width=pct+'%'; bar.className='bar-fill '+r.bar; }
+  const val=document.getElementById(valId);
+  if (val) val.textContent=Math.round(pct)+'%';
+}
+
+function showResults(data, firstBlob) {
+  const s=data.scores||{};
+  if (firstBlob) drawResWaveform(firstBlob);
+  const nRec=data._nRecordings||1;
+  document.getElementById('dur-info').textContent=
+    `${nRec} recording${nRec>1?'s':''} · ${(data.duration||0).toFixed(1)}s total · ${data.windows||0} analysis windows`;
+  const cvh=s['copd_vs_healthy'];
+  if (cvh) {
+    const pct=Math.round(cvh.prob_pct), risk=riskInfo(pct);
+    document.getElementById('copd-pct').textContent=pct+'%';
+    const tag=document.getElementById('copd-tag');
+    tag.textContent=risk.text; tag.className='score-tag '+risk.cls;
+    setBar('copd-bar',null,pct);
+    document.getElementById('copd-meta').textContent='';
+  }
+  [['copd_vs_all','bar-copd-all','val-copd-all'],
+   ['pneumonia_vs_healthy','bar-pneu','val-pneu'],
+   ['asthma_vs_healthy','bar-asthma','val-asthma'],
+   ['heart_failure_vs_healthy','bar-hf','val-hf']
+  ].forEach(([k,bid,vid])=>{ const sc=s[k]; if(sc) setBar(bid,vid,Math.round(sc.prob_pct)); });
+  document.getElementById('screen-main').classList.add('hidden');
+  document.getElementById('screen-results').classList.remove('hidden');
+  window.scrollTo(0,0);
+}
+
+function showMainScreen() {
+  recordings.forEach(r=>URL.revokeObjectURL(r.url));
+  recordings=[]; currentBlob=null;
+  document.getElementById('recordings-list').innerHTML='';
+  document.getElementById('btn-analyze').classList.add('hidden');
+  document.getElementById('btn-analyze').disabled=true;
+  stopProgress();
+  document.getElementById('analysis-progress').style.display='none';
+  document.getElementById('progress-fill').style.width='0%';
+  document.getElementById('btn-add-rec').classList.add('hidden');
+  document.getElementById('pos-selector').classList.add('hidden');
+  document.getElementById('timer').style.display='none';
+  document.getElementById('status-msg').style.display='none';
+  clearError();
+  document.getElementById('screen-results').classList.add('hidden');
+  document.getElementById('screen-main').classList.remove('hidden');
+  window.scrollTo(0,0);
+}
+
+// ═══ RESULTS WAVEFORM ═══
+async function drawResWaveform(blob) {
+  const canvas=document.getElementById('res-waveform'), ctx2=canvas.getContext('2d');
+  const W=canvas.offsetWidth||400, H=60;
+  canvas.width=W*devicePixelRatio; canvas.height=H*devicePixelRatio;
+  ctx2.scale(devicePixelRatio,devicePixelRatio);
+  ctx2.fillStyle='#f7f8fa'; ctx2.fillRect(0,0,W,H);
+  try {
+    const buf=await new(window.AudioContext||window.webkitAudioContext)().decodeAudioData(await blob.arrayBuffer());
+    const data=buf.getChannelData(0), step=Math.max(1,Math.floor(data.length/W));
+    ctx2.strokeStyle='#2e4ea3'; ctx2.lineWidth=1.2; ctx2.beginPath();
+    for (let i=0;i<W;i++) {
+      const sl=data.slice(i*step,(i+1)*step), mx=sl.reduce((a,v)=>Math.max(a,Math.abs(v)),0);
+      ctx2.moveTo(i,H/2-mx*(H/2-4)); ctx2.lineTo(i,H/2+mx*(H/2-4));
+    }
+    ctx2.stroke();
+  } catch(e) {}
+}
+
+// ═══ UTILS ═══
+function showError(msg) { const el=document.getElementById('error-msg'); el.textContent=msg; el.style.display='block'; }
+function clearError() { document.getElementById('error-msg').style.display='none'; }
+
+// Default to Listen mode on load
+setMode('listen');
+</script>
+</body>
+</html>

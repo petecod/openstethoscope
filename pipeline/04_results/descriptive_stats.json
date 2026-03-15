@@ -1,0 +1,175 @@
+{
+  "icbhi": {
+    "n_patients": 126,
+    "n_recordings": 920,
+    "diagnoses": {
+      "URTI": 14,
+      "Healthy": 26,
+      "Asthma": 1,
+      "COPD": 64,
+      "LRTI": 2,
+      "Bronchiectasis": 7,
+      "Pneumonia": 6,
+      "Bronchiolitis": 6
+    },
+    "recordings_per_patient": {
+      "mean": 7.301587301587301,
+      "std": 9.481200983190279,
+      "min": 1,
+      "max": 66
+    },
+    "duration_seconds": {
+      "total": 19773.03036281179,
+      "mean": 21.49242430740412,
+      "std": 8.302904927725729,
+      "min": 7.856,
+      "max": 86.2
+    },
+    "chest_locations": {
+      "Al": 80,
+      "Pr": 59,
+      "Ar": 74,
+      "Ll": 42,
+      "Lr": 54,
+      "Pl": 61,
+      "Tc": 53
+    },
+    "devices": {
+      "Meditron": 64,
+      "LittC2SE": 23,
+      "Litt3200": 11,
+      "AKGC417L": 32
+    }
+  },
+  "fraiwan": {
+    "n_patients": 112,
+    "n_wav_files": 336,
+    "wav_files_per_patient": 3,
+    "filter_modes": {
+      "B": 112,
+      "D": 112,
+      "E": 112
+    },
+    "diagnoses": {
+      "normal": 35,
+      "asthma": 33,
+      "lung_fibrosis": 4,
+      "copd": 11,
+      "heart_failure": 19,
+      "pneumonia": 5,
+      "bronchitis": 3,
+      "pleural_effusion": 2
+    },
+    "chest_positions": {
+      "P R M": 16,
+      "P L M": 12,
+      "P L L": 16,
+      "P R U": 14,
+      "P L U": 11,
+      "A U R": 1,
+      "P R L": 20,
+      "A R M": 4,
+      "P": 1,
+      "P L L R": 2,
+      "A R L": 4,
+      "P L R": 4,
+      "A L U": 2,
+      "A R U": 5
+    },
+    "age": {
+      "mean": 50.455357142857146,
+      "std": 19.152064600034052,
+      "min": 12,
+      "max": 90
+    },
+    "sex": {
+      "F": 43,
+      "M": 69
+    },
+    "device": "Littmann 3200 (built-in mic, 3 hardware filter modes: Bell/Diaphragm/Extended)",
+    "duration_note": "WAV files on Mac \u2014 durations not computed on Linux. Per paper: 5\u201330s each.",
+    "recording_note": "1 auscultation position per patient; 3 WAVs per patient (B/D/E modes)"
+  },
+  "rdtr": {
+    "n_patients": 42,
+    "n_recordings": 504,
+    "all_copd": true,
+    "gold_grades": {
+      "GOLD_0": 6,
+      "GOLD_1": 5,
+      "GOLD_2": 7,
+      "GOLD_3": 7,
+      "GOLD_4": 17
+    },
+    "recordings_per_patient": {
+      "mean": 12.0,
+      "std": 0.0,
+      "min": 12,
+      "max": 12
+    },
+    "channels": {
+      "L1": 42,
+      "L2": 42,
+      "L3": 42,
+      "L4": 42,
+      "L5": 42,
+      "L6": 42,
+      "R1": 42,
+      "R2": 42,
+      "R3": 42,
+      "R4": 42,
+      "R5": 42,
+      "R6": 42
+    },
+    "device": "Electronic stethoscope (model not specified in paper); 10 chest positions per patient",
+    "duration_note": "WAV files on Mac \u2014 durations not computed on Linux.",
+    "recording_note": "12 channels (L1\u2013L6, R1\u2013R6) per patient, but embeddings have channels listed as L1\u2013L5/R1\u2013R5"
+  },
+  "composite": {
+    "n_patients_total": 280,
+    "n_recordings_total": 1760,
+    "by_dataset": {
+      "icbhi": 126,
+      "fraiwan": 112,
+      "rdtr": 42
+    },
+    "diagnoses_pooled": {
+      "urti": 14,
+      "healthy": 26,
+      "asthma": 34,
+      "copd": 117,
+      "lrti": 2,
+      "bronchiectasis": 7,
+      "pneumonia": 11,
+      "bronchiolitis": 6,
+      "normal": 35,
+      "lung_fibrosis": 4,
+      "heart_failure": 19,
+      "bronchitis": 3,
+      "pleural_effusion": 2
+    },
+    "copd_vs_healthy_task": {
+      "copd": 117,
+      "healthy_normal": 61,
+      "note": "RDTR healthy=0 (excluded from vs_healthy); RDTR copd included as positive"
+    },
+    "copd_vs_all_task": {
+      "copd": 117,
+      "non_copd": 163,
+      "total": 280
+    },
+    "countries": [
+      "USA/Portugal (ICBHI)",
+      "Jordan (Fraiwan)",
+      "Turkey (RDTR)"
+    ],
+    "devices": [
+      "Meditron Master Elite",
+      "AKG C417L (reference mic)",
+      "Littmann 3200",
+      "Littmann 3200 (built-in mic, 3 hardware filter modes: Bell/Diaphragm/Extended)",
+      "Electronic stethoscope (model not specified in paper); 10 chest positions per patient",
+      "Littmann Classic II SE"
+    ]
+  }
+}
