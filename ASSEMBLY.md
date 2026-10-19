@@ -78,7 +78,7 @@ Build a wireless digital stethoscope for **<$100 USD** in about 30 minutes.
 Once assembled:
 1. Connect the DJI receiver to your phone (USB-C or Lightning adapter)
 2. To simply record lung sounds, open any audio recording app
-   — for live monitoring or AI-assisted classification, start a local instance of OpenStethoscope or open **[opensteth.agentic-medicine.com](https://opensteth.agentic-medicine.com)**
+   — for live monitoring or AI-assisted classification, start a local instance of OpenStethoscope
 3. Record lung sounds
 4. If desired: upload the recording, embed and analyse it, and receive results
 
