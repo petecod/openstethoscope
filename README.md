@@ -34,14 +34,6 @@ Trained on 280 patients across 4 countries (Portugal, Greece, Jordan, Turkey). P
 
 ---
 
-## Demo
-
-**Live app:** [opensteth.agentic-medicine.com](https://opensteth.agentic-medicine.com)
-
-> Research demo — not a medical device — not validated for clinical use
-Important: Noise cancellation must be off for recording with OpenSteth — on the DJI hardware switch, in the DJI Mimo app, and in your phone's microphone settings.
----
-
 ## Run Locally
 
 ### Prerequisites
@@ -107,8 +99,6 @@ Similar to Cloudflare tunnel. Free tier available at [ngrok.com](https://ngrok.c
 ## Privacy
 
 When running locally, all audio is processed on your own machine. Nothing leaves your device.
-
-When using the hosted demo at [opensteth.agentic-medicine.com](https://opensteth.agentic-medicine.com): audio is sent to the inference server (Azure, Sweden Central) solely to compute the AI score, then permanently deleted. No database, no logs, no third-party sharing.
 
 ---
 
